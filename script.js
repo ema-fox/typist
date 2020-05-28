@@ -3,49 +3,6 @@ let n_choices = 2;
 let score = 0;
 let run = 0;
 
-text = "Vom Eise befreit sind Strom und Bäche \
-durch des Frühlings holden, belebenden Blick. \
-Im Tale grünet Hoffnungsglück. \
-Der alte Winter in seiner Schwäche \
-zog sich in rauhe Berge zurück. \
-Von dorther sendet er, fliehend, nur \
-ohnmächtige Schauer körnigen Eises \
-in Streifen über die grünende Flur. \
-Aber die Sonne duldet kein Weisses. \
-Überall regt sich Bildung und Streben, \
-alles will sie mit Farbe beleben. \
-Doch an Blumen fehlts im Revier. \
-Sie nimmt geputzte Menschen dafür. \
-\
-Kehre dich um, von diesen Höhen \
-nach der Stadt zurückzusehen! \
-Aus dem hohlen, finstern Tor \
-dringt ein buntes Gewimmel hervor. \
-Jeder sonnt sich heute so gern. \
-Sie feiern die Auferstehung des Herrn, \
-denn sie sind selber auferstanden. \
-Aus niedriger Häuser dumpfen Gemächern, \
-aus Handwerks- und Gewerbesbanden, \
-aus dem Druck von Giebeln und Dächern, \
-aus der Strassen quetschender Enge, \
-aus der Kirchen ehrwürdiger Nacht \
-sind sie alle ans Licht gebracht. \
-\
-Sieh nur, sieh, wie behend sich die Menge \
-durch die Gärten und Felder zerschlägt, \
-wie der Fluss in Breit und Länge \
-so manchen lustigen Nachen bewegt, \
-und, bis zum Sinken überladen, \
-entfernt sich dieser letzte Kahn. \
-Selbst von des Berges ferner Pfaden \
-blinken uns farbige Kleider an. \
-Ich höre schon des Dorfs Getümmel. \
-Hier ist des Volkes wahrer Himmel. \
-Zufrieden jauchzet gross und klein: \
-Hier bin ich Mensch, hier darf ichs sein!";
-
-//text = text.split(' ').map(x => x + ' ');
-
 function run_score() {
     return Math.pow(Math.max(0, run - 2), 2);
 }
@@ -66,7 +23,7 @@ function create_choice(c) {
     let button = document.createElement('div');
     button.className = 'choice';
     button.c = c;
-    button.innerText = c == ' ' ? '_' : c;
+    button.innerText = c == ' ' ? '_' : c == '\n' ? '\\n' : c;
     button.addEventListener('click', () => {
         if (button.classList.contains('disabled')) {
             return;
@@ -111,11 +68,25 @@ function show_choices() {
 
 }
 
+async function get_text() {
+    let x = await fetch((document.location.hash.slice(1) || 'osterspaziergang') + '.txt');
+    return x.text();
+}
+
+text_promise = get_text();
+
 addEventListener('DOMContentLoaded', () => {
-    show_choices();
+    text_promise.then(txt => {
+        text = txt
+        show_choices();
+    });
     window.addEventListener('keypress', (event) => {
+        let key = event.key;
+        if (key == 'Enter') {
+            key = '\n';
+        }
         for (b of document.querySelectorAll('.choice')) {
-            if (b.c == event.key) {
+            if (b.c == key) {
                 b.click();
             }
         }

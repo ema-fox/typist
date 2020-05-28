@@ -81,12 +81,16 @@ function show_choices() {
 
     let stride = Math.max(1, Math.min(5, n_stride * truncate_at / n_choices)) | 0;
 
+    /*
     for (let i = 0; i < n_choices; i++) {
         let foo = text.slice(i * stride, (i + 1) * stride);
         if (foo) {
             choices.push(foo);
         }
     }
+    */
+
+    choices = text.match(/[^\s]+\s+/g).slice(0, Math.min(30, n_choices));
 
     choices = [...new Set(choices)];
     choices.sort();

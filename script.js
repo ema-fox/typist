@@ -2,6 +2,7 @@ let out_text = '';
 let n_choices = 2;
 let score = 0;
 let run = 0;
+let streak = 0;
 const n_stride = 5;
 const truncate_at = 20;
 
@@ -14,8 +15,10 @@ function add_run() {
     run = 0;
     let score_el = document.querySelector('#score');
     let run_el = document.querySelector('#run');
+    let streak_el = document.querySelector('#streak');
     score_el.innerText = score
     run_el.innerText = run_score();
+    streak_el.innerText = streak;
 }
 
 function update_label (b) {
@@ -32,15 +35,20 @@ function move(n) {
     n_choices += n * 0.1;
 
     run += n;
+    streak += n;
     if (run_score() >= 100) {
         add_run()
     } else {
         let run_el = document.querySelector('#run');
+        let streak_el = document.querySelector('#streak');
         run_el.innerText = run_score();
+        streak_el.innerText = streak;
     }
 }
 
 function fail(b) {
+    score += streak;
+    streak = 0;
     add_run();
     n_choices = Math.max(2, n_choices - 1);
     b.classList.add('disabled');
@@ -84,6 +92,8 @@ function show_choices() {
     choices.sort();
 
     if (!choices.length) {
+        score += streak;
+        streak = 0;
         add_run();
     }
     for (c of choices) {

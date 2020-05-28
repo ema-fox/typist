@@ -1,5 +1,7 @@
 let out_text = '';
 let n_choices = 2;
+let score = 0;
+let run = 0;
 
 text = "Vom Eise befreit sind Strom und Bäche \
 durch des Frühlings holden, belebenden Blick. \
@@ -42,6 +44,23 @@ Hier ist des Volkes wahrer Himmel. \
 Zufrieden jauchzet gross und klein: \
 Hier bin ich Mensch, hier darf ichs sein!";
 
+//text = text.split(' ').map(x => x + ' ');
+
+function run_score() {
+    return Math.pow(Math.max(0, run - 2), 2);
+}
+
+function add_run() {
+    score += run_score();
+    run = 0;
+    let score_el = document.querySelector('#score');
+    let run_el = document.querySelector('#run');
+    score_el.innerText = score
+    run_el.innerText = run_score();
+
+
+}
+
 
 function create_choice(c) {
     let button = document.createElement('div');
@@ -53,6 +72,13 @@ function create_choice(c) {
             return;
         }
         if (c == text[0]) {
+            run++;
+            if (run_score() >= 100) {
+                add_run()
+            } else {
+                let run_el = document.querySelector('#run');
+                run_el.innerText = run_score();
+            }
             n_choices += 0.1;
             let out = document.querySelector('#output');
             out_text += c;
@@ -60,6 +86,7 @@ function create_choice(c) {
             text = text.slice(1);
             show_choices();
         } else {
+            add_run();
             n_choices = Math.max(2, n_choices - 1);
             button.classList.add('disabled');
         }
@@ -74,6 +101,9 @@ function show_choices() {
     let choices = [...new Set(text.slice(0, n_choices | 0))];
     choices.sort();
 
+    if (!choices.length) {
+        add_run();
+    }
     for (c of choices) {
        choi.insertBefore(create_choice(c), null);
     }

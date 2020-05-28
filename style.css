@@ -1,0 +1,21 @@
+.choice {
+    background-color: lightblue;
+    border-radius: 0.5em;
+    margin: 0.5em;
+    padding: 0.5em;
+    flex-grow: 1;
+    font-size: 2em;
+    text-align: center;
+}
+
+#choices {
+    display: flex;
+    height: 50%;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.disabled {
+    background-color: lightgray;
+    color: darkgray;
+}

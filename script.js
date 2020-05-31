@@ -5,6 +5,7 @@ let run = 0;
 let streak = 0;
 const n_stride = 5;
 const truncate_at = 20;
+let text = [];
 
 function run_score() {
     return Math.pow(Math.max(0, run - 2), 2);
@@ -22,15 +23,36 @@ function add_run() {
 }
 
 function update_label (b) {
-    b.innerText = b.c.replace(/^ | $/g, '_').replace(/^\n|\n$/g, '\\n');
+    b.innerText = b.c.replace(/^ | $/g, '_').replace(/^\n|\n$/g, '\u23CE');
+}
+
+function uncover(node, n) {
+    let cursor = document.querySelector('#cursor');
+    for (let child of node.querySelectorAll('*')) {
+        if (child.hider) {
+            let addition = child.text.slice(0, n);
+            child.text = child.text.slice(n);
+            child.show_text += addition;
+            child.innerText = child.show_text;
+            n -= addition.length
+
+            if (n <= 0 && child.text) {
+                child.replaceWith(child, cursor);
+                break;
+            }
+        } else {
+                child.style.display = '';
+        }
+    }
 }
 
 function move(n) {
-    let foo = text.slice(0, n);
-    out_text += foo;
     let out = document.querySelector('#output');
-    out.innerText = out_text + '|';
-    text = text.slice(n);
+    uncover(out, n);
+    text[0] = text[0].slice(n);
+    if (!text[0]) {
+        text.shift();
+    }
 
     n_choices += n * 0.1;
 
@@ -63,7 +85,7 @@ function create_choice(c) {
         if (button.classList.contains('disabled')) {
             return;
         }
-        if (text.startsWith(button.c)) {
+        if (text[0] = button.c) {
            move(button.c.length);
             show_choices();
         } else {
@@ -77,20 +99,7 @@ function show_choices() {
     let choi = document.querySelector('#choices');
     choi.innerHTML = '';
 
-    let choices = [];
-
-    let stride = Math.max(1, Math.min(5, n_stride * truncate_at / n_choices)) | 0;
-
-    /*
-    for (let i = 0; i < n_choices; i++) {
-        let foo = text.slice(i * stride, (i + 1) * stride);
-        if (foo) {
-            choices.push(foo);
-        }
-    }
-    */
-
-    choices = text.match(/[^\s]+\s+/g).slice(0, Math.min(30, n_choices));
+    let choices = text.slice(0, Math.min(30, n_choices));
 
     choices = [...new Set(choices)];
     choices.sort();
@@ -108,15 +117,37 @@ function show_choices() {
 }
 
 async function get_text() {
-    let x = await fetch((document.location.hash.slice(1) || 'osterspaziergang') + '.txt');
+    let x = await fetch((document.location.hash.slice(1) || 'pepper1') + '.html');
     return await x.text();
 }
 
 text_promise = get_text();
 
 addEventListener('DOMContentLoaded', () => {
-    text_promise.then(txt => {
-        text = txt
+    text_promise.then(html => {
+        let out = document.querySelector('#output');
+        out.innerHTML = html;
+        let walker = document.createTreeWalker(out, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null, false);
+        let node = null;
+        let nodes = []
+        while (node = walker.nextNode()) {
+            nodes.push(node);
+        }
+        nodes.forEach(node => {
+            if (node.tagName) {
+                node.style.display = 'none';
+            } else {
+                let hider = document.createElement('span');
+                hider.hider = true;
+                hider.innerText = node.textContent;
+                hider.text = hider.innerText;
+                hider.innerText.match(/\s*[^\s]+\s*/g).forEach(word => text.push(word));
+                hider.innerText = '';
+                hider.show_text = '';
+                node.replaceWith(hider);
+            }
+        });
+        uncover(out, 0);
         show_choices();
     });
     window.addEventListener('keypress', (event) => {
@@ -124,7 +155,7 @@ addEventListener('DOMContentLoaded', () => {
         if (key == 'Enter') {
             key = '\n';
         }
-        if (text[0] == key) {
+        if (text[0][0] == key) {
             move(1);
             for (b of document.querySelectorAll('.choice')) {
                 if (b.c[0] == key && !b.classList.contains('disabled')) {
